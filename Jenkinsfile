@@ -1,9 +1,11 @@
 pipeline {
     agent any
 
-    stages {
-        
+    enviroment {
+        NETLIFY_SITE_ID = '4bc4c2ca-f009-40d3-b393-8714c2710cc4'
+    }
 
+        stages {
         stage('Build') {
             agent {
                 docker {
@@ -22,7 +24,6 @@ pipeline {
                 '''
             }
         }
-        
 
         stage('Tests') {
             parallel {
@@ -33,7 +34,6 @@ pipeline {
                             reuseNode true
                         }
                     }
-
                     steps {
                         sh '''
                             #test -f build/index.html
@@ -54,7 +54,6 @@ pipeline {
                             reuseNode true
                         }
                     }
-
                     steps {
                         sh '''
                             npm install serve
@@ -63,7 +62,6 @@ pipeline {
                             npx playwright test  --reporter=html
                         '''
                     }
-
                     post {
                         always {
                             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
@@ -72,9 +70,8 @@ pipeline {
                 }
             }
         }
-    }
 
-    stage('Deploy') {
+        stage('Deploy') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -89,5 +86,6 @@ pipeline {
                 '''
             }
         }
+    }
 }
 
