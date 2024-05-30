@@ -4,6 +4,7 @@ pipeline {
     environment {
         NETLIFY_SITE_ID = '4bc4c2ca-f009-40d3-b393-8714c2710cc4'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+        CI_ENVIRONMENT_URL = 'https://capable-chaja-f3a8dc.netlify.app'
     }
 
 stages {
@@ -58,6 +59,10 @@ stages {
                         }
                     }
 
+                    environment {
+                    CI_ENVIRONMENT_URL = 'https://capable-chaja-f3a8dc.netlify.app'
+                    }    
+
                     steps {
                         sh '''
                             npm install serve
@@ -69,7 +74,7 @@ stages {
 
                     post {
                         always {
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Local Report', reportTitles: '', useWrapperFileDirectly: true])
                         }
                     }
                 }
@@ -93,6 +98,26 @@ stages {
                 '''
             }
         }
+    stage('Prod E2E') {
+                agent {
+                    docker {
+                            image 'mcr.microsoft.com/playwright:v1.44.1-jammy'
+                            reuseNode true
+                    }
+                }
+
+                steps {
+                    sh '''
+                        npx playwright test  --reporter=html
+                    '''
+                }
+
+                post {
+                        always {
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright E2E Report', reportTitles: '',useWrapperFileDirectly: true])
+                }
+            }
+        }    
     }
 }
 
